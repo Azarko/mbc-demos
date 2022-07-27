@@ -9,5 +9,5 @@ class ApplicationConfig:
     @classmethod
     def from_env(cls):
         return cls(
-            port=os.getenv('PORT', 8080),
+            port=int(os.getenv('PORT', '8080')),
         )
