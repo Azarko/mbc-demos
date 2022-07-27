@@ -1,28 +1,20 @@
-import os
-
 from aiohttp import web
 
-
-PORT = os.environ.get('PORT', '8080')
-
-
-def setup_routes(app):
-    app.router.add_get('/', index)
+from mbc import config as config_module
+from mbc import routes
+from mbc import types
 
 
-async def index(request):
-    return web.Response(text='hello world')
-
-
-def create_app():
-    app = web.Application()
-    setup_routes(app)
+def create_app() -> types.Application:
+    app = types.Application()
+    app.config = config_module.ApplicationConfig.from_env()
+    routes.setup_routes(app)
     return app
 
 
 def main():
     app = create_app()
-    web.run_app(app, port=PORT)
+    web.run_app(app, port=app.config.port)
 
 
 if __name__ == '__main__':
