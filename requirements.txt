@@ -1,4 +1,6 @@
 aiohttp
+aiogram
+
 pytest
 pytest-aiohttp
 pylint
