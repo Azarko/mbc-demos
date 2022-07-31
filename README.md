@@ -8,6 +8,8 @@ Contains:
 - heroku deploy settings
 - some tests (pytest)
 
-Install requiremets: `pip install -r requirements.txt`  
-Run linters: `pylint mbc tests`  
-Run tests: `pytest .`
+Install requirements: `pip install -r requirements.txt`  
+Run linters:
+  - `pylint mbc tests`
+  - `flake8 mbc tests`  
+Run tests: `pytest`

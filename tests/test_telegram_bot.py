@@ -63,7 +63,7 @@ async def test_telegram_start(web_app_client, patch_method):
             False, id='too-long-message',
         ),
         pytest.param(
-            '', 'input text after command, please', False, id='no-command'
+            '', 'input text after command, please', False, id='no-command',
         ),
     ),
 )
