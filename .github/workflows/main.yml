@@ -1,8 +1,6 @@
-name: CI
+name: tests and linters
 on:
-  pull_request:
-    branches:
-      - main
+  push:
 permissions:
   contents: read
 
@@ -11,11 +9,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
-    - name: Set up Python 3.10
+    - name: Set up Python 3.9.13
       uses: actions/setup-python@v3
       with:
-        python-version: "3.10"
-    - name: Install dependencies
+        python-version: "3.9.13"
+    - name: Install system dependencies
+      run:  sudo apt-get install $(grep -vE "^\s*#" Aptfile  | tr "\n" " ")
+    - name: Install python dependencies
       run: |
         python -m pip install --upgrade pip
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi

@@ -1,6 +1,8 @@
 aiohttp
 aiogram
+-e git+https://github.com/dmitriy-kochetkov/imaginator.git#egg=imaginator
 
 pytest
 pytest-aiohttp
 pylint
+pylint-quotes

@@ -64,7 +64,9 @@ limit-inference-results = 100
 
 # List of plugins (as comma separated values of python module names) to load,
 # usually to register additional checkers.
-# load-plugins =
+load-plugins = [
+    "pylint_quotes",
+]
 
 # Pickle collected data for later comparisons.
 persistent = true
@@ -289,6 +291,11 @@ max-module-lines = 1000
 
 # Allow the body of an if to be on the same line as the test if there is no else.
 # single-line-if-stmt =
+
+# pylint_qoutes
+string-quote = "single"
+triple-quote = "double"
+docstring-quote = "double"
 
 [tool.pylint.imports]
 # List of modules that can be imported at any level, not just the top level one.
