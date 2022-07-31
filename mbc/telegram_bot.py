@@ -29,24 +29,27 @@ class Bot:
             self.start_handler, commands=['start'],
         )
         self.dispatcher.register_message_handler(
-            self.video_text_handler, commands=['video_text']
+            self.video_text_handler, commands=['video_text'],
         )
         if self.webhook_url:
-            webhook = await self.bot.get_webhook_info()
-            if webhook.url != self.webhook_url:
-                # TODO: ssl
-                logger.info(
-                    f'webhook is different, change it to: {self.webhook_url}',
-                )
-                await self.bot.delete_webhook()
-                await self.bot.set_webhook(
-                    self.webhook_url, drop_pending_updates=True,
-                )
-                logger.info('webhook successfully changed')
-            else:
-                logger.info(f'webhook already set: {self.webhook_url}')
+            await self._setup_webhook()
         else:
             logger.warning('webhook is not configured, skip')
+
+    async def _setup_webhook(self):
+        webhook = await self.bot.get_webhook_info()
+        if webhook.url != self.webhook_url:
+            # TODO: ssl
+            logger.info(
+                f'webhook is different, change it to: {self.webhook_url}',
+            )
+            await self.bot.delete_webhook()
+            await self.bot.set_webhook(
+                self.webhook_url, drop_pending_updates=True,
+            )
+            logger.info('webhook successfully changed')
+        else:
+            logger.info(f'webhook already set: {self.webhook_url}')
 
     async def on_shutdown(self, *args, **kwargs):
         if self.webhook_url:
