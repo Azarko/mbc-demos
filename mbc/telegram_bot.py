@@ -52,14 +52,19 @@ class Bot:
             logger.info(f'webhook already set: {self.webhook_url}')
 
     async def on_shutdown(self, *args, **kwargs):
-        if self.webhook_url:
-            logger.info('webhook deleted')
-            await self.bot.delete_webhook()
+        # if self.webhook_url:
+        #     logger.info('webhook deleted')
+        #     await self.bot.delete_webhook()
+        pass
 
     async def start_handler(self, message: aiogram.types.Message):
         return await message.reply('started')
 
     async def video_text_handler(self, message: aiogram.types.Message):
+        if message.chat.type != aiogram.types.ChatType.PRIVATE:
+            return await message.reply(
+                'this function available only in private chat',
+            )
         command, command_argument = message.get_full_command()
         if not command_argument:
             logger.info(f'got {command} without arguments')

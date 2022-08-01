@@ -8,7 +8,7 @@ from mbc import telegram_bot
 CHAT_ID = 123456789
 
 
-def _create_request(text: str) -> typing.Dict:
+def _create_request(text: str, chat_type: str = 'private') -> typing.Dict:
     return {
         'update_id': 147272840,
         'message': {
@@ -26,7 +26,7 @@ def _create_request(text: str) -> typing.Dict:
                 'first_name': 'Ivan',
                 'last_name': 'Ivanov',
                 'username': 'Ivan007',
-                'type': 'private',
+                'type': chat_type,
             },
             'date': 1659138663,
             'text': text,
@@ -56,7 +56,7 @@ async def test_telegram_start(web_app_client, patch_method):
 @pytest.mark.parametrize(
     ('command_arg', 'expected_answer', 'is_send'),
     (
-        pytest.param('test', 'video_text', True, id='OK'),
+        pytest.param('test', None, True, id='OK'),
         pytest.param(
             't' * (telegram_bot.MAX_TEXT_SIZE + 1),
             'Your message too long! Max message size is 150',
@@ -108,6 +108,22 @@ async def test_telegram_video_text(
     )
     assert response.status == http.HTTPStatus.OK
     assert is_video_send == is_send
+
+
+async def test_telegram_video_text_group(
+        web_app_client,
+        patch_method,
+):
+    @patch_method('aiogram.Bot.send_message')
+    async def send_message(*args, chat_id, text, **kwargs):
+        assert chat_id == CHAT_ID
+        assert text == 'this function available only in private chat'
+
+    response = await web_app_client.post(
+        '/api/v1/telegram/webhook',
+        json=_create_request('/video_text test', chat_type='group'),
+    )
+    assert response.status == http.HTTPStatus.OK
 
 
 async def test_telegram_video_text_imaginator(web_app_client, patch_method):
