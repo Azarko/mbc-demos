@@ -9,7 +9,5 @@ Contains:
 - some tests (pytest)
 
 Install requirements: `pip install -r requirements.txt`  
-Run linters:
-  - `pylint mbc tests`
-  - `flake8 mbc tests`  
+Run linters: `flake8 mbc tests`  
 Run tests: `pytest`
