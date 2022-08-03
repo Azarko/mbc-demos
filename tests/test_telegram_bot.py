@@ -1,6 +1,7 @@
 import http
 import typing
 
+import aiogram.utils.exceptions
 import pytest
 
 from mbc import telegram_bot
@@ -46,6 +47,21 @@ async def test_telegram_start(web_app_client, patch_method):
     async def send_message(*args, chat_id, text, **kwargs):
         assert chat_id == CHAT_ID
         assert text == 'started'
+
+    response = await web_app_client.post(
+        '/api/v1/telegram/webhook', json=_create_request('/start'),
+    )
+    assert response.status == http.HTTPStatus.OK
+
+
+async def test_telegram_bot_blocked(web_app_client, patch_method):
+    @patch_method('aiogram.Bot.send_message')
+    async def send_message(*args, chat_id, text, **kwargs):
+        assert chat_id == CHAT_ID
+        assert text == 'started'
+        raise aiogram.utils.exceptions.BotBlocked(
+            'Forbidden: bot was blocked by the user',
+        )
 
     response = await web_app_client.post(
         '/api/v1/telegram/webhook', json=_create_request('/start'),
