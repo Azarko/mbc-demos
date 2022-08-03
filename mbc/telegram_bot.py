@@ -26,10 +26,12 @@ class Bot:
 
     async def on_startup(self):
         self.dispatcher.register_message_handler(
-            self.start_handler, commands=['start'],
+            self.start_handler,
+            commands=['start'],
         )
         self.dispatcher.register_message_handler(
-            self.video_text_handler, commands=['video_text'],
+            self.video_text_handler,
+            commands=['video_text'],
         )
         if self.webhook_url:
             await self._setup_webhook()
@@ -45,7 +47,8 @@ class Bot:
             )
             await self.bot.delete_webhook()
             await self.bot.set_webhook(
-                self.webhook_url, drop_pending_updates=True,
+                self.webhook_url,
+                drop_pending_updates=True,
             )
             logger.info('webhook successfully changed')
         else:
@@ -78,7 +81,9 @@ class Bot:
         loop = asyncio.get_event_loop()
         with concurrent.futures.ThreadPoolExecutor() as pool:
             content = await loop.run_in_executor(
-                pool, generate_video, command_argument,
+                pool,
+                generate_video,
+                command_argument,
             )
         await message.answer_chat_action(action='upload_video')
         with io.BytesIO(content) as stream:

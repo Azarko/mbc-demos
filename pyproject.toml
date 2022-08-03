@@ -367,7 +367,8 @@ disable = [
     "missing-function-docstring",
     "missing-class-docstring",
     "logging-fstring-interpolation",
-    "fixme"
+    "fixme",
+    "too-many-arguments",
 ]
 
 # Enable the message, report, category or checker with the given id(s). You can
@@ -375,6 +376,9 @@ disable = [
 # multiple time (only on the command line, not in the configuration file where it
 # should appear only once). See also the "--disable" option for examples.
 enable = ["c-extension-no-member"]
+
+[tool.black]
+skip-string-normalization = true
 
 [tool.pylint.miscellaneous]
 # List of note tags to take in consideration, separated by a comma.

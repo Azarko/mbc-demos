@@ -22,7 +22,10 @@ def patch_method(monkeypatch):
         def decorator(func):
             def wrapper(*args, **kwargs):
                 return func(*args, **kwargs)
+
             monkeypatch.setattr(path, wrapper)
             return wrapper
+
         return decorator
+
     return decorator_factory
