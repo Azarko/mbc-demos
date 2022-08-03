@@ -14,5 +14,6 @@ flake8-commas
 flake8-comprehensions
 flake8-implicit-str-concat
 flake8-multiline-containers
+flake8-pylint
 flake8-return
 pep8-naming

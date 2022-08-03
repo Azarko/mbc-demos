@@ -20,9 +20,7 @@ jobs:
         python -m pip install --upgrade pip
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
     - name: Linters
-      run: |
-        pylint mbc tests
-        flake8 mbc tests
+      run: flake8 mbc tests
     - name: Tests
       run: |
         pytest
