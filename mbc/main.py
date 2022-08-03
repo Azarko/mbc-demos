@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 
 async def create_app(
-        config: config_module.ApplicationConfig,
+    config: config_module.ApplicationConfig,
 ) -> types.Application:
     logging.basicConfig(level=logging.INFO)
     app = types.Application()
