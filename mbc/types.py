@@ -1,8 +1,7 @@
 from aiohttp import web
 from aiohttp import web_request
 
-from mbc import config
-from mbc import telegram_bot
+from mbc import config, telegram_bot
 
 
 class Application(web.Application):

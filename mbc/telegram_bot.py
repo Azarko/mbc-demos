@@ -3,12 +3,14 @@ import concurrent.futures
 import contextlib
 import io
 import logging
-import os
-import uuid
 
 import aiogram
+from aiogram.contrib.fsm_storage import memory
+from aiogram.dispatcher.filters import state
 import aiogram.types
-import imaginator.entry as imaginator_entry
+
+from mbc.utils import party_calculator
+from mbc.utils import video_generator
 
 
 logger = logging.getLogger(__name__)
@@ -17,12 +19,31 @@ logger = logging.getLogger(__name__)
 MAX_TEXT_SIZE = 150
 
 
+class Form(state.StatesGroup):
+    data = state.State()
+
+
+def _drop_chat_storage_info(func):
+    """Drops chat_id from bot storage after function call."""
+
+    async def wrapper(self: 'Bot', message: aiogram.types.Message, **kwargs):
+        try:
+            return await func(self, message, **kwargs)
+        finally:
+            logger.info(f'drop chat {message.chat.id} from storage')
+            with contextlib.suppress(KeyError):
+                self.storage.data.pop(str(message.chat.id))
+
+    return wrapper
+
+
 class Bot:
     def __init__(self, token: str, webhook_url: str):
         self.token = token
         self.webhook_url = webhook_url
+        self.storage = memory.MemoryStorage()
         self.bot = aiogram.Bot(token=self.token, validate_token=False)
-        self.dispatcher = aiogram.Dispatcher(self.bot)
+        self.dispatcher = aiogram.Dispatcher(self.bot, storage=self.storage)
 
     async def on_startup(self):
         self.dispatcher.register_message_handler(
@@ -32,6 +53,14 @@ class Bot:
         self.dispatcher.register_message_handler(
             self.video_text_handler,
             commands=['video_text'],
+        )
+        self.dispatcher.register_message_handler(
+            self.party_calc,
+            commands=['party'],
+        )
+        self.dispatcher.register_message_handler(
+            self.process_calc_data,
+            state=Form.data,
         )
         if self.webhook_url:
             await self._setup_webhook()
@@ -55,10 +84,7 @@ class Bot:
             logger.info(f'webhook already set: {self.webhook_url}')
 
     async def on_shutdown(self, *args, **kwargs):
-        # if self.webhook_url:
-        #     logger.info('webhook deleted')
-        #     await self.bot.delete_webhook()
-        pass
+        await self.storage.close()
 
     async def start_handler(self, message: aiogram.types.Message):
         return await message.reply('started')
@@ -82,7 +108,7 @@ class Bot:
         with concurrent.futures.ThreadPoolExecutor() as pool:
             content = await loop.run_in_executor(
                 pool,
-                generate_video,
+                video_generator.generate_video,
                 command_argument,
             )
         await message.answer_chat_action(action='upload_video')
@@ -90,23 +116,37 @@ class Bot:
             stream.name = 'animation.mp4'
             return await message.answer_animation(animation=stream)
 
-
-def generate_video(text: str) -> bytes:
-    logger.info(f'start generating video for text "{text}')
-    filename = f'{uuid.uuid4().hex}.mp4'
-    try:
-        imaginator = imaginator_entry.Imaginator()
-        imaginator_entry.create_video(
-            imaginator=imaginator,
-            name=filename,
-            text_line=text,
+    async def party_calc(self, message: aiogram.types.Message):
+        await Form.data.set()
+        await message.reply(
+            'input members and payments separated by space, one member per '
+            'line, for example: \n\nperson_one 1000\nperson_two 2000',
         )
-        return _load_result(filename)
-    finally:
-        with contextlib.suppress(OSError):
-            os.remove(filename)
 
-
-def _load_result(path: str) -> bytes:
-    with open(path, 'rb') as stream:
-        return stream.read()
+    @_drop_chat_storage_info
+    async def process_calc_data(
+        self,
+        message: aiogram.types.Message,
+        **kwargs,
+    ):
+        logger.info(f'process calc data for {message.chat.id}')
+        await Form.next()
+        text = message.text
+        members = []
+        for index, string in enumerate(text.split('\n'), start=1):
+            try:
+                member = party_calculator.PartyMember.from_string(string)
+            except party_calculator.ValidationError:
+                logger.exception(f'failed to parse string "{string}"')
+                return await message.reply(
+                    f'can\'t parse string {index} ("{string}"): '
+                    'invalid string format',
+                )
+            members.append(member)
+        total_sum = sum(member.payment for member in members)
+        avg = total_sum / len(members)
+        result = [f'each member must pay: {avg:.2f}\n']
+        for member in members:
+            result.append(f'{member.name}: {avg - member.payment:.2f}')
+        # TODO: format numbers to x.xx e.g. 100.23 or 0.00
+        return await message.reply('\n'.join(result))

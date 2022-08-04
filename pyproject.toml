@@ -379,6 +379,8 @@ enable = ["c-extension-no-member"]
 
 [tool.black]
 skip-string-normalization = true
+line-length = 79
+preview = true
 
 [tool.pylint.miscellaneous]
 # List of note tags to take in consideration, separated by a comma.
