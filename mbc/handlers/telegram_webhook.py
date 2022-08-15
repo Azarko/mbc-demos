@@ -15,6 +15,7 @@ async def handler(request: types.Request):
     update = await request.json()
     update = aiogram.types.Update(**update)
     aiogram.Bot.set_current(request.app.bot.bot)
+    aiogram.Dispatcher.set_current(request.app.bot.dispatcher)
     try:
         await request.app.bot.dispatcher.process_update(update)
     except aiogram_exceptions.TelegramAPIError as err:

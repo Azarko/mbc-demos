@@ -2,11 +2,9 @@ import logging
 
 from aiohttp import web
 
-from mbc import config as config_module
+from mbc import config as config_module, telegram_bot
 from mbc import routes
-from mbc import telegram_bot
 from mbc import types
-
 
 logger = logging.getLogger(__name__)
 
