@@ -38,8 +38,7 @@ class PartyMember:
 def get_total(members: typing.List[PartyMember]) -> float:
     if not members:
         raise NoMemberError('no members specified')
-    total_sum = sum(member.payment for member in members)
-    return total_sum
+    return sum(member.payment for member in members)
 
 
 def get_average(members: typing.List[PartyMember]) -> float:
