@@ -14,6 +14,10 @@ class ValidationError(BaseError):
     """Data validation error."""
 
 
+class NoMemberError(BaseError):
+    """No member specified."""
+
+
 @dataclasses.dataclass
 class PartyMember:
     name: str
@@ -29,3 +33,14 @@ class PartyMember:
         if not found:
             raise ValidationError(f'invalid string format: "{string}"')
         return cls.from_dict(found.groupdict())
+
+
+def get_total(members: typing.List[PartyMember]) -> float:
+    if not members:
+        raise NoMemberError('no members specified')
+    return sum(member.payment for member in members)
+
+
+def get_average(members: typing.List[PartyMember]) -> float:
+    total = get_total(members)
+    return total / len(members)

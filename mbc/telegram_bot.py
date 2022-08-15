@@ -17,6 +17,11 @@ logger = logging.getLogger(__name__)
 
 
 MAX_TEXT_SIZE = 150
+VIDEO_TEXT_PRIVATE_CHAT = 'this function available only in private chat'
+PARTY_COMMAND_MESSAGE = (
+    'reply this message and input members and payments separated by space, '
+    'one member per line, for example: \n\nperson_one 1000\nperson_two 2000'
+)
 
 
 class Form(state.StatesGroup):
@@ -91,9 +96,7 @@ class Bot:
 
     async def video_text_handler(self, message: aiogram.types.Message):
         if message.chat.type != aiogram.types.ChatType.PRIVATE:
-            return await message.reply(
-                'this function available only in private chat',
-            )
+            return await message.reply(VIDEO_TEXT_PRIVATE_CHAT)
         command, command_argument = message.get_full_command()
         if not command_argument:
             logger.info(f'got {command} without arguments')
@@ -118,10 +121,7 @@ class Bot:
 
     async def party_calc(self, message: aiogram.types.Message):
         await Form.data.set()
-        await message.reply(
-            'input members and payments separated by space, one member per '
-            'line, for example: \n\nperson_one 1000\nperson_two 2000',
-        )
+        await message.reply(PARTY_COMMAND_MESSAGE)
 
     @_drop_chat_storage_info
     async def process_calc_data(
@@ -139,14 +139,15 @@ class Bot:
             except party_calculator.ValidationError:
                 logger.exception(f'failed to parse string "{string}"')
                 return await message.reply(
-                    f'can\'t parse string {index} ("{string}"): '
-                    'invalid string format',
+                    f'bad format: can\'t parse string {index} ("{string}")',
                 )
             members.append(member)
-        total_sum = sum(member.payment for member in members)
-        avg = total_sum / len(members)
+        try:
+            avg = party_calculator.get_average(members)
+        except party_calculator.NoMemberError:
+            logger.exception(f'no members specified: {text}')
+            return await message.reply('bad format: no members specified')
         result = [f'each member must pay: {avg:.2f}\n']
         for member in members:
             result.append(f'{member.name}: {avg - member.payment:.2f}')
-        # TODO: format numbers to x.xx e.g. 100.23 or 0.00
         return await message.reply('\n'.join(result))

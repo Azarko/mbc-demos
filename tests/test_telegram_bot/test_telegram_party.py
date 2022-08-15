@@ -2,16 +2,15 @@ import http
 
 import pytest
 
+from mbc import telegram_bot
+
 
 async def test_telegram_party(
     web_app_client,
     patch_send_message,
     telegram_request,
 ):
-    patch_send_message(
-        'input members and payments separated by space, one member per line, '
-        'for example: \n\nperson_one 1000\nperson_two 2000',
-    )
+    patch_send_message(telegram_bot.PARTY_COMMAND_MESSAGE)
     response = await web_app_client.post(
         '/api/v1/telegram/webhook',
         json=telegram_request('/party'),
@@ -46,14 +45,12 @@ async def test_telegram_party(
         ),
         pytest.param(
             'person_one 1000 ',
-            'can\'t parse string 1 ("person_one 1000 "): invalid string'
-            ' format',
+            'bad format: can\'t parse string 1 ("person_one 1000 ")',
             id='wrong-format-space-at-end',
         ),
         pytest.param(
             'person_one 1000 qwe',
-            'can\'t parse string 1 ("person_one 1000 qwe"): invalid string'
-            ' format',
+            'bad format: can\'t parse string 1 ("person_one 1000 qwe")',
             id='wrong-format-trash',
         ),
         pytest.param(
